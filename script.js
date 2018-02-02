@@ -27,33 +27,26 @@
 			};
 	})();
 
-	window.animationLoop = function(callback, interval, delay) {
-		var time = 0;
+	window.animationLoop = function(callback) {
 		var animationResource = {};
 		function loop(startTime) {
-			if(startTime - time > interval) {
-				callback();
-				time = startTime;
-			}
+			callback(startTime);
 			animationResource.id = window.requestAnimationFrame(loop);
 		}
-		if(delay) {
-			setTimeout(loop, delay);
-		} else {
-			loop();
-		}
+		loop();
 		return animationResource;
 	};
 
-	var speed = 200;
+	window.speed = 60;
 	var typeText = document.getElementById("typetext").children[0].innerText;
 	var chars = ["eе", "EЕ", "TТ", "oо", "OО", "pр", "PР", "aа", "AА", "HН", "KК", "xх", "XХ", "cс", "CС", "BВ", "MМ"];
 	for (i = 0; i < chars.length; ++i) typeText = typeText.replace(new RegExp(chars[i].charAt(0), "gm"), chars[i].charAt(1));
 	i = 0;
 	var inputText = document.getElementById('inputtext');
-	var loop = animationLoop(function() {
+
+	function typeTextAction() {
 		if(i >= typeText.length) {
-			window.cancelAnimationFrame(loop);
+			window.cancelAnimationFrame(window.mainLoop);
 			return;
 		}
 		inputText.value += typeText.charAt(i);
@@ -64,5 +57,27 @@
 		keyboardEvent.which = charCode;
 		inputText.dispatchEvent(keyboardEvent);
 		i++;
-	}, speed);
+	}
+
+	var accelerator = 10;
+
+	window.onkeydown = function(event) {
+		switch(event.key) {
+			case 'ArrowLeft':
+				window.speed -= accelerator;
+				break;
+			case 'ArrowRight':
+				window.speed += accelerator;
+				break;
+		}
+		console.log(window.speed);
+	};
+
+	var time = 0;
+	window.mainLoop = animationLoop(function(startTime) {
+		if((startTime - time) > 60 * 1000 / window.speed) {
+			typeTextAction();
+			time = startTime;
+		}
+	});
 })();
